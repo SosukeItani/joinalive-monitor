@@ -33,7 +33,7 @@ URL = "https://l-tike.com/order/?gLcode=10601&gPfKey=20260224000002147765%2C2026
 r = requests.get(
     URL,
     headers={"User-Agent": "Mozilla/5.0"},
-    timeout=20
+    timeout=60
 )
 
 print("ステータス:", r.status_code)
