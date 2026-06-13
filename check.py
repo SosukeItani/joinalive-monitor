@@ -1,41 +1,32 @@
-"""
+from playwright.sync_api import sync_playwright
 import requests
 import os
 
 URL = "https://l-tike.com/order/?gLcode=10601&gPfKey=20260224000002147765%2C20260224000002147770&gEntryMthd=02&gScheduleNo=8&gCarrierCd=01&gPfName=ＪＯＩＮ%E3%80%80ＡＬＩＶＥ%E3%80%80２０２６&gBaseVenueCd=15085"
 
-html = requests.get(
-    URL,
-    headers={"User-Agent": "Mozilla/5.0"}
-).text
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
 
-if "18日入場券" not in html:
-    requests.post(
-        os.environ["DISCORD_WEBHOOK"],
-        json={"content": " JOIN ALIVE監視失敗。ページ構造が変わった可能性があります。"}
-    )
-else:
-    idx = html.find("18日入場券")
-    area = html[idx:idx+2000]
+    page = browser.new_page()
+    page.goto(URL, wait_until="networkidle", timeout=120000)
+
+    text = page.locator("body").inner_text()
+
+    browser.close()
+
+print("18日入場券" in text)
+
+if "18日入場券" in text:
+    idx = text.find("18日入場券")
+    area = text[idx:idx+500]
+
+    print(area)
 
     if "予定枚数終了" not in area:
         requests.post(
             os.environ["DISCORD_WEBHOOK"],
-            json={"content": " JOIN ALIVE 18日券の状態が変わった可能性あり！今すぐ確認！"}
+            json={
+                "content":
+                " JOIN ALIVE 18日券の状態が変わった可能性あり！"
+            }
         )
-"""
-import requests
-
-print("開始")
-
-URL = "https://l-tike.com/order/?gLcode=10601&gPfKey=20260224000002147765%2C20260224000002147770&gEntryMthd=02&gScheduleNo=8&gCarrierCd=01&gPfName=ＪＯＩＮ%E3%80%80ＯＬＩＶＥ%E3%80%80２０２６&gBaseVenueCd=15085"
-
-r = requests.get(
-    URL,
-    headers={"User-Agent": "Mozilla/5.0"},
-    timeout=60
-)
-
-print("ステータス:", r.status_code)
-print("長さ:", len(r.text))
-print("終了")
