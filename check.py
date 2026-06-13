@@ -1,32 +1,35 @@
-from playwright.sync_api import sync_playwright
 import requests
+import hashlib
 import os
 
-URL = "https://l-tike.com/order/?gLcode=10601&gPfKey=20260224000002147765%2C20260224000002147770&gEntryMthd=02&gScheduleNo=8&gCarrierCd=01&gPfName=ＪＯＩＮ%E3%80%80ＡＬＩＶＥ%E3%80%80２０２６&gBaseVenueCd=15085"
+URL = "https://joinalive.jp/2026/tickets/schedule/"
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+html = requests.get(
+    URL,
+    headers={"User-Agent": "Mozilla/5.0"},
+    timeout=30
+).text
 
-    page = browser.new_page()
-    page.goto(URL, wait_until="networkidle", timeout=120000)
+current_hash = hashlib.md5(html.encode()).hexdigest()
 
-    text = page.locator("body").inner_text()
+HASH_FILE = "last_hash.txt"
 
-    browser.close()
+try:
+    with open(HASH_FILE, "r") as f:
+        old_hash = f.read().strip()
+except:
+    old_hash = ""
 
-print("18日入場券" in text)
+if old_hash and old_hash != current_hash:
+    requests.post(
+        os.environ["DISCORD_WEBHOOK"],
+        json={
+            "content":
+            " JOIN ALIVEチケットページに変更がありました！\nhttps://joinalive.jp/2026/tickets/schedule/"
+        }
+    )
 
-if "18日入場券" in text:
-    idx = text.find("18日入場券")
-    area = text[idx:idx+500]
+with open(HASH_FILE, "w") as f:
+    f.write(current_hash)
 
-    print(area)
-
-    if "予定枚数終了" not in area:
-        requests.post(
-            os.environ["DISCORD_WEBHOOK"],
-            json={
-                "content":
-                " JOIN ALIVE 18日券の状態が変わった可能性あり！"
-            }
-        )
+print("監視完了")
