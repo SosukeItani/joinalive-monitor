@@ -1,3 +1,4 @@
+"""
 import requests
 import os
 
@@ -22,3 +23,19 @@ else:
             os.environ["DISCORD_WEBHOOK"],
             json={"content": " JOIN ALIVE 18日券の状態が変わった可能性あり！今すぐ確認！"}
         )
+"""
+import requests
+
+print("開始")
+
+URL = "https://l-tike.com/order/?gLcode=10601&gPfKey=20260224000002147765%2C20260224000002147770&gEntryMthd=02&gScheduleNo=8&gCarrierCd=01&gPfName=ＪＯＩＮ%E3%80%80ＯＬＩＶＥ%E3%80%80２０２６&gBaseVenueCd=15085"
+
+r = requests.get(
+    URL,
+    headers={"User-Agent": "Mozilla/5.0"},
+    timeout=20
+)
+
+print("ステータス:", r.status_code)
+print("長さ:", len(r.text))
+print("終了")
